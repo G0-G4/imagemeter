@@ -1,5 +1,40 @@
 import dearpygui.dearpygui as dpg
 import random
+from collections import defaultdict
+
+class Editor:
+
+    connections = defaultdict(set)
+
+    @staticmethod
+    def get_node_dbl(io):
+        node = dpg.get_item_parent(io)
+        children = dpg.get_item_children(node, 1)
+        dbl = dpg.get_item_children(children[2], 1)[0]
+        return dbl
+
+    @staticmethod
+    def link_callback(sender, app_data):
+        dpg.add_node_link(app_data[0], app_data[1], parent=sender)
+        left = Editor.get_node_dbl(app_data[0])
+        right = Editor.get_node_dbl(app_data[1])
+        Editor.connections[left].add(right)
+        print(dpg.get_value(left), dpg.get_value(right))
+
+    @staticmethod
+    def add_node():
+        with dpg.node(label=f'line {len(Line.tags)}', parent='node editor', tag=f'node{len(Line.tags)}'):
+            with dpg.node_attribute(attribute_type=dpg.mvNode_Attr_Input, tag=f'nodeinp{len(Line.tags)}'):
+                ...
+            with dpg.node_attribute(attribute_type=dpg.mvNode_Attr_Output, tag=f'nodeoutp{len(Line.tags)}'):
+                ...
+            with dpg.node_attribute(attribute_type=dpg.mvNode_Attr_Static, tag=f'attribute{len(Line.tags)}'):
+                inp = dpg.add_input_double(label=f'length', width=150, tag=f'inp{len(Line.tags)}')
+                button = dpg.add_button(label=f'line')
+                mv = dpg.add_button(label=f'move', callback=Line.press_move, user_data=Line.tags[-1])
+                # dpg.add_button(label=f'delete', callback = Line.delete, user_data=[inp, button, mv, Line.tags[-1]])
+                dpg.add_button(label=f'delete', callback = Line.delete, user_data=[f'node{len(Line.tags)}'])
+
 
 class Line():
 
@@ -45,14 +80,30 @@ class Line():
                 pos = res
         dpg.configure_item(Line.tags[-1], p2 = pos)
 
+    # @staticmethod
+    # def link_callback(sender, app_data):
+    #     dpg.add_node_link(app_data[0], app_data[1], parent=sender)
+    #     left = get_node_dbl(app_data[0])
+    #     right = get_node_dbl(app_data[1])
+    #     print(left, right)
+
     @staticmethod
     def end_draw():
         dpg.hide_item('draw')
         dpg.hide_item('end_draw')
-        inp = dpg.add_input_double(parent='lines', label=f'len line{len(Line.tags)}')
-        button = dpg.add_button(parent='lines', label=f'line{len(Line.tags)}')
-        mv = dpg.add_button(parent='lines', label=f'move line{len(Line.tags)}', callback=Line.press_move, user_data=Line.tags[-1])
-        dpg.add_button(parent='lines', label=f'delete{len(Line.tags)}', callback = Line.delete, user_data=[inp, button, mv, Line.tags[-1]])
+        Editor.add_node()
+        # with dpg.node(label=f'line {len(Line.tags)}', parent='node editor', tag=f'node{len(Line.tags)}'):
+        #     with dpg.node_attribute(attribute_type=dpg.mvNode_Attr_Input, tag=f'nodeinp{len(Line.tags)}'):
+        #         ...
+        #     with dpg.node_attribute(attribute_type=dpg.mvNode_Attr_Output, tag=f'nodeoutp{len(Line.tags)}'):
+        #         ...
+        #     with dpg.node_attribute(attribute_type=dpg.mvNode_Attr_Static, tag=f'attribute{len(Line.tags)}'):
+        #         inp = dpg.add_input_double(label=f'length', width=150, tag=f'inp{len(Line.tags)}')
+        #         button = dpg.add_button(label=f'line')
+        #         mv = dpg.add_button(label=f'move', callback=Line.press_move, user_data=Line.tags[-1])
+        #         # dpg.add_button(label=f'delete', callback = Line.delete, user_data=[inp, button, mv, Line.tags[-1]])
+        #         dpg.add_button(label=f'delete', callback = Line.delete, user_data=[f'node{len(Line.tags)}'])
+
 
     @staticmethod
     def press_move(sender, app_data, user_data):
@@ -96,7 +147,7 @@ class Line():
     def delete(sender, app_data, user_data):
         for i in user_data:
             dpg.delete_item(i)
-        dpg.delete_item(sender)
+        # dpg.delete_item(sender)
         del Line.tags[-1]
 
     @staticmethod
@@ -155,6 +206,8 @@ with dpg.window(label="view", tag='view'):
         dpg.draw_image("texture_tag", pmin = (50, 50), pmax=(width, height), uv_min = (0, 0), uv_max = (1, 1))
 with dpg.window(label="lines", tag='lines'):
     dpg.add_button(label='add line', callback=Line.add_line)
+    with dpg.node_editor(tag='node editor', callback=Editor.link_callback):
+        ...
 
 dpg.set_primary_window('view', True)
 
