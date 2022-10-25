@@ -3,8 +3,12 @@ import line
 from collections import defaultdict
 
 
-connections = defaultdict(set)
+parent_to_children = defaultdict(set)
+child_to_parent = dict()
 
+def add(parent, child):
+    parent_to_children[parent].add(child)
+    child_to_parent[child] = parent
 
 def get_node_flt(node):
     children = dpg.get_item_children(node, 1) # get children from slot 1 (mvNode_Attr_Static)
@@ -29,16 +33,21 @@ def link_callback(sender, app_data):
     parent_node, child_node = dpg.get_item_parent(app_data[0]), dpg.get_item_parent(app_data[1]) # # search for node from input or output
     right = get_node_flt(child_node)
     len_cm = recalculate(parent_node, child_node)
-    connections[parent_node].add(child_node)
+    add(parent_node, child_node)
     dpg.set_value(right, len_cm)
 
 def input_update(sender, app_data, user_data):
     print(sender, app_data, user_data)
-    parent_node = user_data
-    for child_node in connections[parent_node]:
+    node = user_data
+    for child_node in parent_to_children[node]:
         right = get_node_flt(child_node)
-        len_cm = recalculate(parent_node, child_node)
+        len_cm = recalculate(node, child_node)
         dpg.set_value(right, len_cm)
+    if node in child_to_parent:
+        left = get_node_flt(child_to_parent[node])
+        len_cm = recalculate(node, child_to_parent[node])
+        dpg.set_value(left, len_cm)
+
 
 def add_node():
     with dpg.node(label=f'line {len(line.tags)}', parent='node editor', tag=f'node{len(line.tags)}'):
