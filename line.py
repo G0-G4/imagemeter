@@ -1,14 +1,16 @@
 import dearpygui.dearpygui as dpg
-from editor import add_node
+from editor import add_node, input_update
 
 tags = []
 moving = None
 moving_end = None
+PX = None
 shift = False
+parent_node = None
 
 directions = [(1, 0), (0, 1), (0.70710678118, 0.70710678118)]
 
-def len(p1, p2):
+def length(p1, p2):
     return ((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2) ** 0.5
 
 def start_draw():
@@ -23,7 +25,7 @@ def get_closest(p1, p2):
     res = None
     for d in directions:
         vec = (p2[0] - p1[0], p2[1] - p1[1])
-        prj = (vec[0] * d[0] + vec[1] * d[1])/len((0, 0), d)
+        prj = (vec[0] * d[0] + vec[1] * d[1])/length((0, 0), d)
         print(prj)
         if prj != 0 and abs(prj) > abs(projection) :
             projection = prj
@@ -38,38 +40,25 @@ def draw():
             pos = res
     dpg.configure_item(tags[-1], p2 = pos)
 
-# @staticmethod
-# def link_callback(sender, app_data):
-#     dpg.add_node_link(app_data[0], app_data[1], parent=sender)
-#     left = get_node_dbl(app_data[0])
-#     right = get_node_dbl(app_data[1])
-#     print(left, right)
-
 def end_draw():
     dpg.hide_item('draw')
     dpg.hide_item('end_draw')
-    add_node()
-    # with dpg.node(label=f'line {len(tags)}', parent='node editor', tag=f'node{len(tags)}'):
-    #     with dpg.node_attribute(attribute_type=dpg.mvNode_Attr_Input, tag=f'nodeinp{len(tags)}'):
-    #         ...
-    #     with dpg.node_attribute(attribute_type=dpg.mvNode_Attr_Output, tag=f'nodeoutp{len(tags)}'):
-    #         ...
-    #     with dpg.node_attribute(attribute_type=dpg.mvNode_Attr_Static, tag=f'attribute{len(tags)}'):
-    #         inp = dpg.add_input_double(label=f'length', width=150, tag=f'inp{len(tags)}')
-    #         button = dpg.add_button(label=f'line')
-    #         mv = dpg.add_button(label=f'move', callback=press_move, user_data=tags[-1])
-    #         # dpg.add_button(label=f'delete', callback = delete, user_data=[inp, button, mv, tags[-1]])
-    #         dpg.add_button(label=f'delete', callback = delete, user_data=[f'node{len(tags)}'])
+    px = add_node()
+    conf = dpg.get_item_configuration(tags[-1])
+    dpg.set_value(px, length(conf['p1'], conf['p2']))
 
 def press_move(sender, app_data, user_data):
-    moving = user_data
+    global moving, PX, parent_node
+    moving, PX, parent_node = user_data
+    print('PX', PX)
     dpg.show_item('start_move')
 
 def start_move():
+    global moving_end
     conf = dpg.get_item_configuration(moving)
     p1, p2 = conf['p1'], conf['p2']
     pos = dpg.get_drawing_mouse_pos()
-    if len(p1, pos) <= len(p2, pos):
+    if length(p1, pos) <= length(p2, pos):
         moving_end = 'p1'
     else:
         moving_end = 'p2'
@@ -79,24 +68,30 @@ def start_move():
     dpg.hide_item('start_move')
 
 def move():
+    global moving_end, PX, parent_node
     pos = dpg.get_drawing_mouse_pos()
     par = {moving_end: pos}
+    conf = dpg.get_item_configuration(moving)
     dpg.configure_item(moving, **par)
+    print(PX, length(conf['p1'], conf['p2']))
+    dpg.set_value(PX, length(conf['p1'], conf['p2']))
+    input_update(None, None, parent_node)
 
 def end_move():
     dpg.hide_item('move')
     dpg.hide_item('end_move')
 
 def shift_down():
+    global shift
     shift = True
 
 def shift_release():
+    global shift
     shift = False
 
 def delete(sender, app_data, user_data):
     for i in user_data:
         dpg.delete_item(i)
-    # dpg.delete_item(sender)
     del tags[-1]
 
 def add_line():

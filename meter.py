@@ -2,6 +2,7 @@ import dearpygui.dearpygui as dpg
 import random
 import line, editor
 
+
 dpg.create_context()
 
 with dpg.handler_registry(tag="start_draw"):
