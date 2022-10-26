@@ -1,7 +1,13 @@
 import dearpygui.dearpygui as dpg
 import random
+import sys
 import line, editor
 
+print(sys.argv)
+if len(sys.argv) < 2:
+    print('file not chosen')
+    sys.exit()
+file = sys.argv[1]
 
 dpg.create_context()
 
@@ -31,7 +37,7 @@ with dpg.handler_registry(tag="keyboard"):
     dpg.add_key_down_handler(callback=line.shift_down)
     dpg.add_key_release_handler(callback=line.shift_release)
 
-width, height, channels, data = dpg.load_image("109763.jpg")
+width, height, channels, data = dpg.load_image(file)
 with dpg.texture_registry(show=False):
     dpg.add_static_texture(width=width, height=height, default_value=data, tag="texture_tag")
 
