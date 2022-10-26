@@ -1,5 +1,4 @@
 import dearpygui.dearpygui as dpg
-import random
 import sys
 import line, editor
 
@@ -40,19 +39,6 @@ with dpg.handler_registry(tag="keyboard"):
 width, height, channels, data = dpg.load_image(file)
 with dpg.texture_registry(show=False):
     dpg.add_static_texture(width=width, height=height, default_value=data, tag="texture_tag")
-
-
-
-# def line_button_press(sender, app_data, user_data):
-#     global line_data
-#     if line_data:
-#         len_cm = dpg.get_value(line_data['inp'])/line_data['len'] * user_data['len']
-#         dpg.set_value(user_data['inp'], len_cm)
-#         line_data = {}
-#     else:
-#         line_data = user_data
-
-
 
 with dpg.window(label="view", tag='view'):
     with dpg.drawlist(tag='drawlist', width=width*2, height=height*2, parent='view'):
