@@ -10,6 +10,10 @@ def add(parent, child):
     parent_to_children[parent].add(child)
     child_to_parent[child] = parent
 
+def remove(parent, child):
+    parent_to_children[parent].remove(child)
+    del child_to_parent[child]
+
 def get_node_elt(node, i):
     children = dpg.get_item_children(node, 1) # get children from slot 1 (mvNode_Attr_Static)
     elt = dpg.get_item_children(children[2], 1)[i] # get i child of node attribute (float input)
@@ -44,6 +48,14 @@ def link_callback(sender, app_data):
     len_cm = recalculate(parent_node, child_node)
     add(parent_node, child_node)
     dpg.set_value(right_flt, len_cm)
+
+def delink_callback(sender, app_data):
+    print(sender, app_data)
+    conf = dpg.get_item_configuration(app_data)
+    parent_node, child_node = dpg.get_item_parent(conf['attr_1']), dpg.get_item_parent(conf['attr_2'])
+    remove(parent_node, child_node)
+    dpg.delete_item(app_data)
+
 
 def input_update(sender, app_data, user_data):
     print(sender, app_data, user_data)

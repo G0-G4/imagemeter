@@ -53,7 +53,7 @@ with dpg.window(label="view", tag='view'):
         dpg.draw_image("texture_tag", pmin = (50, 50), pmax=(width, height), uv_min = (0, 0), uv_max = (1, 1))
 with dpg.window(label="lines", tag='lines'):
     dpg.add_button(label='add line', callback=line.add_line)
-    with dpg.node_editor(tag='node editor', callback=editor.link_callback):
+    with dpg.node_editor(tag='node editor', callback=editor.link_callback, delink_callback=editor.delink_callback):
         ...
 
 dpg.set_primary_window('view', True)
